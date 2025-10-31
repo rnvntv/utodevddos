@@ -1,0 +1,11 @@
+# Команда для отправки проекта в GitHub:
+
+cd /home/ubuntu/ddos/utodevbotnet
+git push -u origin main
+
+# Если запросит аутентификацию:
+# Username: rnvntv
+# Password: ваш_Personal_Access_Token (не пароль!)
+
+# Создать токен: https://github.com/settings/tokens
+# Выберите права: repo (полный доступ к репозиториям)
