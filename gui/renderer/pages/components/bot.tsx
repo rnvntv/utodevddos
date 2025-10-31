@@ -1,4 +1,4 @@
-/** A component representing a Bot in the Hulk Botnet. */
+/** A component representing a Bot in the UtodevBotnet. */
 
 import Status, { StatusColors, statusLevelMap } from "./status";
 import { BotProps } from "../../types/props.d";
@@ -39,8 +39,8 @@ const Bot = (props: BotProps) => {
             <div className="right">
                 <div className="rightTop">
                     <div className="keys">
-                        <div>HOST</div>
-                        <div>PORT</div>
+                        <div>ХОСТ</div>
+                        <div>ПОРТ</div>
                     </div>
                     <div className="values">
                         <div className="botIp">
@@ -52,10 +52,10 @@ const Bot = (props: BotProps) => {
                     </div>
                 </div>
                 <div className="rightBottom">
-                    Target Status:&nbsp;
+                    Статус цели:&nbsp;
                     <span style={{ color: statusLevelMap[props.targetStatus || 'UNKNOWN'] }}>
                         {
-                            // Remove the StatusCodes. prefix from the status.
+                            // Удаляем префикс StatusCodes. из статуса.
                             (props.targetStatus || 'UNKNOWN')
                             ?.replace(/StatusCodes\./, '')
                             ?.replace(/_/, ' ') || 'UNKNOWN'

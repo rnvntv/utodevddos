@@ -1,11 +1,11 @@
 {
-  "name": "hulk_gui",
+  "name": "utodevbotnet_gui",
   "version": "0.1.0",
-  "description": "This is the GUI Dashboard for the Hulk Botnet.",
-  "author": "Hyperclaw79",
+  "description": "GUI Dashboard for the UtodevBotnet - Стресс-тестирование",
+  "author": "rnvntv",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Hyperclaw79/hulk-v3"
+    "url": "https://github.com/rnvntv/utodevddos"
   },
   "license": "GPL-3.0-or-later",
   "private": true,

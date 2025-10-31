@@ -1,4 +1,4 @@
-/** The component which holds the status of the Target website. */
+/** Компонент для отображения статуса целевого сайта. */
 
 import Status, { statusLevelMap } from "./status";
 import { TargetProps } from "../../types/props.d";
@@ -12,20 +12,20 @@ const Target = (props: TargetProps) => {
                     {
                         props.url ? (
                             <>
-                                Attacking&nbsp;
+                                Атака на&nbsp;
                                 <span>{props.url}</span>
                             </>
                         ) : (
-                            'Waiting for target...'
+                            'Ожидание цели...'
                         )
                     }
                 </a>
                 <div className="targetStatus">
-                    Status:&nbsp;
+                    Статус:&nbsp;
                     <div className="statusWrapper">
                         <Status
                             status={
-                                // Remove the StatusCodes. prefix from the status.
+                                // Удаляем префикс StatusCodes. из статуса.
                                 (props.status || 'UNKNOWN')
                                 .replace(/StatusCodes\./, '')
                                 .replace(/_/, ' ')

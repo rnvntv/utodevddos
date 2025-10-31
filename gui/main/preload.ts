@@ -1,5 +1,5 @@
-/** This module facilitates the communication with Hulk Server
-via a Named Pipe. */
+/** Этот модуль обеспечивает связь с сервером UtodevBotnet
+через Named Pipe. */
 
 import * as net from 'net';
 
@@ -13,7 +13,7 @@ import { MessageData } from '../types/bridge.d';
 // Flag to prevent multiple instances of the pipe
 let PIPE_INITIATED = false;
 
-let PIPE_NAME = "HULK";
+let PIPE_NAME = "UTODEVBOTNET";
 
 // Platform specific Named Pipe
 PIPE_NAME = process.platform === 'win32'
@@ -152,7 +152,7 @@ const monitor = (callbacks: { [key: string]: CallableFunction }) => {
         });
 
         stream.on('end', () => {
-            console.log('Connected lost with Hulk Server');
+            console.log('Connected lost with UtodevBotnet Server');
             server.close();
             if (callbacks?.onDisconnect) {
                 callbacks.onDisconnect();

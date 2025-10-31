@@ -1,5 +1,5 @@
-/** Fallback API if Electron is not available.
-Refer ../main/preload.ts for docs. */
+/** Резервный API, если Electron недоступен.
+См. ../main/preload.ts для документации. */
 
 import * as net from 'net';
 
@@ -11,7 +11,7 @@ import { NextApiRequest, NextApiResponse } from 'next/types';
 
 let PIPE_INITIATED = false;
 
-let PIPE_NAME = "HULK";
+let PIPE_NAME = "UTODEVBOTNET";
 PIPE_NAME = process.platform === 'win32'
     ? `\\\\.\\pipe\\${PIPE_NAME}`
     : `/tmp/${PIPE_NAME}`;
@@ -132,7 +132,7 @@ const monitor = (callbacks: { [key: string]: CallableFunction }) => {
         });
 
         stream.on('end', () => {
-            console.log('Connected lost with Hulk Server');
+            console.log('Connected lost with UtodevBotnet Server');
             server.close();
             if (callbacks?.onDisconnect) {
                 callbacks.onDisconnect();

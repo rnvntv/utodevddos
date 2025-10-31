@@ -1,7 +1,7 @@
-appId: com.hyperclaw.hulk
-productName: Hulk GUI
-artifactName: Hulk_GUI.${ext}
-copyright: Copyright © 2022 Hyperclaw79
+appId: com.utodevbotnet.gui
+productName: UtodevBotnet GUI
+artifactName: UtodevBotnet_GUI.${ext}
+copyright: Copyright © 2024 utodevbotnet
 directories:
   output: dist/${os}
   buildResources: resources
@@ -12,12 +12,12 @@ files:
       - app
 publish: null
 win:
-  publisherName: Hyperclaw79
+  publisherName: utodevbotnet
   icon: resources/icon.ico
   target: [portable]
 linux:
   icon: resources/Hulk.png
-  synopsis: Hulk GUI
-  description: This is the GUI Dashboard for the Hulk Botnet.
+  synopsis: UtodevBotnet GUI
+  description: This is the GUI Dashboard for the UtodevBotnet.
   category: Security
   target: [AppImage]

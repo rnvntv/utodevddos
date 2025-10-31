@@ -1,14 +1,14 @@
-/** A component to display the Online/Offline Status message. */
+/** Компонент для отображения сообщения о статусе онлайн/оффлайн. */
 
 import { StatusCodes } from "../../types/enums.d";
 
 /**
  * @readonly StatusColors
  * @enum {string}
- * @property {string} GREEN - The color of the status message when the website is taken down.
- * @property {string} RED - The color of the status message when the website cannot be DDoSed.
- * @property {string} YELLOW - The color of the status message when the website is unknown.
- * @property {string} WHITE - The color of the status message when the website is online.
+ * @property {string} GREEN - Цвет статуса, когда сайт выведен из строя.
+ * @property {string} RED - Цвет статуса, когда сайт не может быть атакован DDoS.
+ * @property {string} YELLOW - Цвет статуса, когда сайт неизвестен.
+ * @property {string} WHITE - Цвет статуса, когда сайт онлайн.
  */
 export enum StatusColors {
     GREEN = 'rgb(112, 255, 77)',
@@ -19,7 +19,7 @@ export enum StatusColors {
 
 /**
  * @readonly statusLevelMap
- * Map of the status codes to the color of the status message.
+ * Карта статусных кодов к цветам сообщений о статусе.
  * @property {StatusCodes} [StatusCodes.NO_LUCK]
  * @property {StatusCodes} [StatusCodes.PWNED]
  * @property {StatusCodes} [StatusCodes.ANTI_DDOS]
@@ -41,8 +41,8 @@ export const statusLevelMap = {
 
 /**
  * @interface StatusProps
- * @property {string} status - The status code of the website.
- * @property {string} level - The color of the status message.
+ * @property {string} status - Статусный код сайта.
+ * @property {string} level - Цвет сообщения о статусе.
  */
 export interface StatusProps {
     status: string;
