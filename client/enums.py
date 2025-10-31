@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-Hulk v3
+UtodevBotnet v3
 
-This module contains the Enums used in Hulk.
+Этот модуль содержит перечисления, используемые в UtodevBotnet.
 """
 
 # pylint: disable=duplicate-code
@@ -12,35 +12,35 @@ from enum import IntEnum
 
 class ServerCommands(IntEnum):
     """
-    The different commands sent by Hulk Server.
+    Различные команды, отправляемые сервером UtodevBotnet.
     """
-    #: Kill the Bot.
+    #: Убить бота.
     TERMINATE: int = -1
-    #: Stop the attack and go to standby.
+    #: Остановить атаку и перейти в режим ожидания.
     STOP: int = 0
-    #: Please perform a read to get the target address.
+    #: Пожалуйста, выполните чтение для получения адреса цели.
     READ_TARGET: int = 1
 
 
 class ClientCommands(IntEnum):
     """
-    The different commands sent by Hulk Client.
+    Различные команды, отправляемые клиентом UtodevBotnet.
     """
-    #: Something went wrong.
+    #: Что-то пошло не так.
     ERROR: int = -2
-    #: Bot Terminated.
+    #: Бот завершен.
     KILLED: int = -1
-    #: Stopped previous attack, on standby.
+    #: Остановлена предыдущая атака, в режиме ожидания.
     STANDBY: int = 0
-    #: Send me the target address.
+    #: Отправьте мне адрес цели.
     SEND_TARGET: int = 1
-    #: Please perform a read to get the status.
+    #: Пожалуйста, выполните чтение для получения статуса.
     READ_STATUS: int = 2
 
 
 class StatusCodes(IntEnum):
     """
-    The different HTTP error codes.
+    Различные коды ошибок HTTP.
     """
     CONNECTION_FAILURE: int = 69
     NO_LUCK: int = 200

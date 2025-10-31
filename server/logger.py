@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-Hulk v3
+UtodevBotnet v3
 
-Collection of Utitlity functions.
+Collection of Utility functions.
 """
 
 # pylint: disable=duplicate-code, no-member
@@ -139,7 +139,7 @@ class WinNamedPipeHandler(logging.StreamHandler):
     """
     def __init__(
         self, *args,
-        pipe_name: Optional[str] = "HULK",
+        pipe_name: Optional[str] = "UTODEVBOTNET",
         wait_for_pipe: Optional[bool] = False,
         **kwargs
     ):
@@ -257,7 +257,7 @@ class UnixNamedPipeHandler(logging.StreamHandler):
     """
     def __init__(
         self, *args,
-        pipe_name: Optional[str] = "HULK",
+        pipe_name: Optional[str] = "UTODEVBOTNET",
         wait_for_pipe: Optional[bool] = False,
         **kwargs
     ):
@@ -506,7 +506,7 @@ class CustomLoggerClass(logging.Logger):
 logging.setLoggerClass(CustomLoggerClass)
 
 
-LOGGER: CustomLoggerClass = logging.getLogger("Hulk_Server")
+LOGGER: CustomLoggerClass = logging.getLogger("UtodevBotnet_Server")
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(StdoutHandler())
 

