@@ -43,7 +43,6 @@ python3 launcher.py client
 
 - **STRESS_TEST_GUIDE.md** - Полное руководство по стресс-тестированию
 - **QUICK_START.md** - Быстрая справка по командам
-- **CODE_REVIEW.md** - Детальный код-ревью проекта
 
 ---
 

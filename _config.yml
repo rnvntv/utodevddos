@@ -1,8 +1,8 @@
 # Site Settings
-title: Hulk-v3
-author: Hyperclaw79
-description: Asynchronous HTTP Botnet for Distributed Denial of Service (DDoS)
-url: https://hyperclaw79.github.io/HULK-v3
+title: UtodevBotnet v3
+author: utodevbotnet
+description: Инструмент для легального стресс-тестирования веб-сайтов
+url: https://github.com/rnvntv/utodevddos
 # Build Settings
 theme: jekyll-theme-hacker
 markdown: GFM
